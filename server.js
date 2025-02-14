@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import connectDB from "./config/db.config.js";
 import cors from "cors";
 import authRoutes from "./routes/authRoutes.route.js";
+import imageRoutes from "./routes/imageRoutes.route.js";
 
 // Initialize environment variables
 dotenv.config();
@@ -22,6 +23,7 @@ app.use(
 app.use(express.json()); // Parse JSON bodies
 
 app.use("/api/auth", authRoutes); // API routes
+app.use("/api/images", imageRoutes); // Register image routes
 app.get("/", (req, res) => {
   res.send("API is running...");
 }); // Test Route
