@@ -3,6 +3,7 @@ import upload from "../middleware/uploadMiddleware.middleware.js";
 import {
   uploadImage,
   getUserImages,
+  deleteImage,
 } from "../controllers/imageController.controller.js";
 import authMiddleware from "../middleware/authMiddleware.middleware.js";
 
@@ -13,5 +14,8 @@ router.post("/upload", authMiddleware, upload.single("image"), uploadImage);
 
 // Route to fetch user-specific images
 router.get("/my-images", authMiddleware, getUserImages);
+
+// Route to delete image
+router.delete("/delete/:imageId", authMiddleware, deleteImage);
 
 export default router;
