@@ -79,7 +79,13 @@ export const deleteImage = async (req, res) => {
 
     console.log(`Deleting image from Cloudinary with public_id: ${publicId}`);
 
-    await cloudinary.uploader.destroy(publicId);
+    await cloudinary.uploader.destroy(publicId, (error, result) => {
+      if (error) {
+        console.log("Error deleting mimage", error);
+      } else {
+        console.log("Image deleted successfully", result);
+      }
+    });
 
     user.images.splice(imageIndex, 1);
     await user.save();
