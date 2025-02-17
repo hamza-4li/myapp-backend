@@ -5,12 +5,24 @@ import cloudinary from "../utils/cloudinary.js"; // Ensure cloudinary instance i
 export const uploadImage = async (req, res) => {
   try {
     const userId = req.user.id; // Get logged-in user's ID
-    const imageUrl = req.file.path; // Cloudinary URL
+    const file = req.file; // Get the uploaded file
+
+    if (!file) {
+      return res.status(400).json({ message: "No file uploaded." });
+    }
+
+    // Upload the image to Cloudinary
+    const uploadResult = await cloudinary.uploader.upload(file.path, {
+      folder: "user-uploads",
+    });
+
+    const imageUrl = uploadResult.secure_url; // URL returned by Cloudinary
+    const publicId = uploadResult.public_id; // Cloudinary's public ID
 
     // Update user record with new image
     const user = await User.findByIdAndUpdate(
       userId,
-      { $push: { images: imageUrl } },
+      { $push: { images: { url: imageUrl, public_id: publicId } } },
       { new: true }
     );
 
@@ -18,6 +30,7 @@ export const uploadImage = async (req, res) => {
       .status(200)
       .json({ message: "Image uploaded successfully!", imageUrl, user });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Image upload failed!", error });
   }
 };
@@ -41,11 +54,11 @@ export const getUserImages = async (req, res) => {
 // Delete Image Controller
 export const deleteImage = async (req, res) => {
   try {
-    const { imageId } = req.params;
+    const { publicId } = req.params; // Corrected to publicId
     const userId = req.user.id; // Get logged-in user's ID
 
     console.log(
-      `Attempting to delete image with ID: ${imageId} for user: ${userId}`
+      `Attempting to delete image with publicId: ${publicId} for user: ${userId}`
     );
 
     const user = await User.findById(userId);
@@ -53,18 +66,18 @@ export const deleteImage = async (req, res) => {
       return res.status(404).json({ message: "User not found!" });
     }
 
-    // Find the image URL in user's images
+    // Find the image in user's images by public_id
     const imageIndex = user.images.findIndex(
-      (image) => image.public_id === imageId
+      (image) => image.public_id === publicId
     );
     if (imageIndex === -1) {
       return res.status(404).json({ message: "Image not found!" });
     }
 
-    console.log(`Deleting image from Cloudinary with public_id: ${imageId}`);
+    console.log(`Deleting image from Cloudinary with public_id: ${publicId}`);
 
     // Delete image from Cloudinary
-    await cloudinary.uploader.destroy(imageId);
+    await cloudinary.uploader.destroy(publicId);
 
     // Remove image from the user's images array
     user.images.splice(imageIndex, 1);
