@@ -41,10 +41,13 @@ export const getUserImages = async (req, res) => {
 // Delete Image Controller
 export const deleteImage = async (req, res) => {
   try {
-    const { imageId } = req.params; // Get the imageId from URL parameters
-    const userId = req.user.id; // Get the logged-in user's ID
+    const { imageId } = req.params;
+    const userId = req.user.id; // Get logged-in user's ID
 
-    // Find user and check if image exists
+    console.log(
+      `Attempting to delete image with ID: ${imageId} for user: ${userId}`
+    );
+
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found!" });
@@ -58,16 +61,19 @@ export const deleteImage = async (req, res) => {
       return res.status(404).json({ message: "Image not found!" });
     }
 
+    console.log(`Deleting image from Cloudinary with public_id: ${imageId}`);
+
     // Delete image from Cloudinary
-    await cloudinary.uploader.destroy(imageId); // 'public_id' from Cloudinary
+    await cloudinary.uploader.destroy(imageId);
 
     // Remove image from the user's images array
     user.images.splice(imageIndex, 1);
     await user.save();
 
+    console.log("Image deleted successfully");
     res.status(200).json({ message: "Image deleted successfully!" });
   } catch (error) {
-    console.error(error);
+    console.error("Error during image deletion:", error);
     res.status(500).json({ message: "Failed to delete image!", error });
   }
 };
