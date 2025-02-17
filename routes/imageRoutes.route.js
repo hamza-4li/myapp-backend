@@ -16,6 +16,6 @@ router.post("/upload", authMiddleware, upload.single("image"), uploadImage);
 router.get("/my-images", authMiddleware, getUserImages);
 
 // Route to delete image by public ID
-router.delete("/images/delete/:publicId", deleteImage);
+router.delete("/delete/:publicId", deleteImage);
 
 export default router;
