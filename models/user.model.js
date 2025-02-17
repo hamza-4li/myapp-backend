@@ -25,7 +25,18 @@ const userSchema = new mongoose.Schema(
       type: Date, // Expiration time for the OTP
       default: null,
     },
-    images: [{ type: String }], // Array to store image URLs
+    images: [
+      {
+        url: {
+          type: String,
+          required: true,
+        },
+        public_id: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
   },
   { timestamps: true }
 );
