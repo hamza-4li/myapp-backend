@@ -100,7 +100,7 @@ export const getUserImages = async (req, res) => {
 //   }
 // };
 
-const deleteImage = async (req, res) => {
+export const deleteImage = async (req, res) => {
   try {
     const { publicId } = req.params;
 
