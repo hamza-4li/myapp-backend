@@ -52,50 +52,76 @@ export const getUserImages = async (req, res) => {
 };
 
 // Delete Image Controller
-export const deleteImage = async (req, res) => {
+// export const deleteImage = async (req, res) => {
+//   try {
+//     const { publicId } = req.params;
+//     const userId = req.user.id;
+
+//     console.log(`Received DELETE request for publicId: ${publicId}`);
+
+//     if (!publicId) {
+//       return res.status(400).json({ message: "Missing publicId in request." });
+//     }
+
+//     const user = await User.findById(userId);
+//     if (!user) {
+//       console.log("User not found.");
+//       return res.status(404).json({ message: "User not found!" });
+//     }
+
+//     const imageIndex = user.images.findIndex(
+//       (image) => image.public_id === publicId
+//     );
+//     if (imageIndex === -1) {
+//       console.log("Image not found in user records.");
+//       return res.status(404).json({ message: "Image not found!" });
+//     }
+
+//     console.log(`Deleting image from Cloudinary with public_id: ${publicId}`);
+
+//     try {
+//       await cloudinary.uploader.destroy(publicId);
+//       user.images.splice(imageIndex, 1);
+//       await user.save();
+//       res.status(200).json({ message: "Image deleted successfully!" });
+//     } catch (error) {
+//       console.error("Error during image deletion:", error);
+//       res.status(500).json({ message: "Failed to delete image!", error });
+//     }
+
+//     user.images.splice(imageIndex, 1);
+//     await user.save();
+
+//     console.log("Image deleted successfully");
+//     res.status(200).json({ message: "Image deleted successfully!" });
+//   } catch (error) {
+//     console.error("Error during image deletion:", error);
+//     res.status(500).json({ message: "Failed to delete image!", error });
+//   }
+// };
+
+const deleteImage = async (req, res) => {
   try {
     const { publicId } = req.params;
-    const userId = req.user.id;
-
-    console.log(`Received DELETE request for publicId: ${publicId}`);
 
     if (!publicId) {
-      return res.status(400).json({ message: "Missing publicId in request." });
+      return res.status(400).json({ error: "Public ID is required" }); // ✅ Return to prevent execution
     }
 
-    const user = await User.findById(userId);
-    if (!user) {
-      console.log("User not found.");
-      return res.status(404).json({ message: "User not found!" });
+    // Delete image from Cloudinary
+    const result = await cloudinary.uploader.destroy(publicId);
+
+    if (result.result !== "ok") {
+      return res
+        .status(500)
+        .json({ error: "Failed to delete image from Cloudinary" }); // ✅ Return before executing further
     }
 
-    const imageIndex = user.images.findIndex(
-      (image) => image.public_id === publicId
-    );
-    if (imageIndex === -1) {
-      console.log("Image not found in user records.");
-      return res.status(404).json({ message: "Image not found!" });
-    }
+    // Delete from database
+    await ImageModel.findOneAndDelete({ public_id: publicId });
 
-    console.log(`Deleting image from Cloudinary with public_id: ${publicId}`);
-
-    try {
-      await cloudinary.uploader.destroy(publicId);
-      user.images.splice(imageIndex, 1);
-      await user.save();
-      res.status(200).json({ message: "Image deleted successfully!" });
-    } catch (error) {
-      console.error("Error during image deletion:", error);
-      res.status(500).json({ message: "Failed to delete image!", error });
-    }
-
-    user.images.splice(imageIndex, 1);
-    await user.save();
-
-    console.log("Image deleted successfully");
-    res.status(200).json({ message: "Image deleted successfully!" });
+    return res.status(200).json({ message: "Image deleted successfully" }); // ✅ Final response
   } catch (error) {
-    console.error("Error during image deletion:", error);
-    res.status(500).json({ message: "Failed to delete image!", error });
+    return res.status(500).json({ error: "Server error" }); // ✅ Only one response sent
   }
 };
